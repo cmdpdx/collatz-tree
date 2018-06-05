@@ -1,5 +1,3 @@
-import pickle
-
 class CollatzTree():
     """
     A data-structure and collection of methods to examine lists of numbers generated
@@ -40,12 +38,10 @@ class CollatzTree():
     def __init__(self):
         """Create a new CollatzTree with a single path: 1."""
         self.collatz_tree = {1: 4}  # 1 loops back to 4 (3*1 + 1)
-        self.steps_to_one = {1: 0}  # 1 is already at 1
         self.paths = {1: [1]}
         self.verbose = True
 
-        #self.max_steps = (1, 0)  # current longest path 1->1: 0 steps
-        #self.longest_path = 1
+        self.steps_to_one = {1: 0}  # 1 is already at 1
     
     def __len__(self):
         return len(self.collatz_tree)
@@ -78,12 +74,13 @@ class CollatzTree():
         filename -- name of the pickle file to use 
           (default CollatzTree.__DEFAULT_FILENAME)
         """
+        import pickle
+
         try:
             f = open(filename, 'rb')
         except FileNotFoundError:
             print(filename, 'does not exist yet.')
         else:
-            #self.collatz_tree, self.steps_to_one = pickle.load(f)
             self.collatz_tree, self.paths = pickle.load(f)
             f.close()
     
@@ -95,8 +92,9 @@ class CollatzTree():
         filename -- name of the pickle file to use 
           (default CollatzTree.__DEFAULT_FILENAME)
         """
+        import pickle
+
         f = open(filename, 'wb')
-        #pickle.dump((self.collatz_tree, self.steps_to_one), f)
         pickle.dump((self.collatz_tree, self.paths), f)
         f.close()
 
@@ -132,6 +130,21 @@ class CollatzTree():
                 self._info(n, 'in list already (and rest of path)')
                 break
     
+    def fill(self, n):
+        """
+        Adds the chains of all (i -> 1) for i from n down to 1 to the Collatz 
+        tree that are not currently in the tree.
+        
+        Arguments:
+        n -- the number to start from
+        """
+        while n > 1:
+            if n in self.collatz_tree:
+                self._info(n, 'in tree already')
+            else:
+                self.add(n)
+            n -= 1
+
     def fill_path(self, n):
         if n not in self.collatz_tree:
             self._info(n, 'not in list; adding.')
@@ -141,19 +154,19 @@ class CollatzTree():
             self._info(n, "path already filled.")
             return
 
+        # create a new path from n to 1 (inclusive)
         path = [n]
         while n > 1:
             next_ = self.collatz_tree[n]
+            # if the next number's path is filled, combine with current path and end
             if next_ in self.paths:
-                self._info(next_, "path to 1 already exists; combining")
                 path += self.paths[next_]
                 break
-            else:
-                path.append(next_)
-
+            
+            path.append(next_)
             n = next_
         
-        # Fill any sub paths that have not yet been filled:
+        # save any sub paths that have not yet been filled:
         self._info("backfilling paths...")
         for i in range(len(path)):
             if path[i] in self.paths:
@@ -162,6 +175,15 @@ class CollatzTree():
             else:
                 self.paths[path[i]] = path[i:]
                 self._info("path from {} -> 1 added: {}".format(path[i], str(path[i:])))
+
+    def fill_all_paths(self):
+        """
+        Fill all of the paths-to-1 for all numbers currently in the tree.
+        """
+  
+        for n in self.collatz_tree:
+            if n not in self.paths:
+                self.fill_path(n)
 
     def get_path(self, n):
         """
@@ -189,33 +211,13 @@ class CollatzTree():
             
         index, length = sorted(list(zip(self.paths.keys(), map(len, self.paths.values()))), key=lambda x: x[1], reverse=True)[0]
         return self.paths[index]
-
-    
   
-    ### FILL_ALL_PATHS ###
-    def fill_all_paths(self):
-        """
-        Fill all of the paths-to-1 for all numbers currently in the tree.
-        """
-        """
-        # Old method: dict of lengths of paths to 1. 
-        # New method: dict of path lists
-        for n in self.collatz_tree:
-            if n not in self.steps_to_one:
-                self._calculate_steps_to_one(n)
-        """
-  
-        for n in self.collatz_tree:
-            if n not in self.paths:
-                self.fill_path(n)
-  
-    ### STEPS_TO_ONE ###
     def get_steps_to_one(self, n):
         """
-        Returns the number of steps from the number n to 1 in the Collatz chain.
-        If n is not aleady in the list, it is added first.  If the number of 
-        steps from n down to 1 have not already been calculated, that method 
-        is called here.
+        Return the number of steps from the number n to 1 in the Collatz sequence.
+
+        If n is not aleady in the list, it is added first.  If the path from n 
+        down to 1 has not already been filled, that method is called here.
         
         Arguments:
         n -- the number to start from
@@ -224,12 +226,6 @@ class CollatzTree():
             self._info(n, 'not in tree; adding.')
             self.add(n)
     
-        # Old method: dict of lengths of paths to 1. 
-        # New method: dict of path lists
-        #if n not in self.steps_to_one:   # -1 steps means it hasn't been calc'd
-        #    self._calculate_steps_to_one(n)
-      
-        #return self.steps_to_one[n]
         if n not in self.paths:
             self._info(n, 'path not filled; filling.')
             self.fill_path(n)
@@ -237,57 +233,7 @@ class CollatzTree():
         # -1 from len of path because path includes n
         return len(self.paths[n]) - 1
   
-  
-    ### _CALCULATE_STEPS_TO_ONE ###
-    ## UNNECESSARY ##
-    def _calculate_steps_to_one(self, n):
-        """
-        Non-public method, calculates and returns the number of steps from the 
-        number n to 1 in the Collatz chain.
-        If n is not aleady in the list, it is added first.
-        
-        Arguments:
-        n -- the number to start from
-        """
-        if n not in self.collatz_tree:
-            self._info(n, 'not in tree; adding.')
-            self.add(n)
     
-        steps = 0
-        path = []
-        while n > 1:
-            if n in self.steps_to_one:
-                self._info(n, 'already has steps to 1 (%d)' 
-                    % self.steps_to_one[n])
-                steps += self.steps_to_one[n]
-                break
-            else:
-                path.append(n)
-                n = self.collatz_tree[n]
-                steps += 1
-      
-        if path: self._info('path: ', path)
-        for num in path:
-            self._info(num, '-> 1 set to:', steps)
-            self.steps_to_one[num] = steps
-            steps -= 1
-      
-  
-    ### FILL ###  
-    def fill(self, n):
-        """
-        Adds the chains of all (i -> 1) for i from n down to 1 to the Collatz 
-        tree that are not currently in the tree.
-        
-        Arguments:
-        n -- the number to start from
-        """
-        while n > 1:
-            if n in self.collatz_tree:
-                self._info(n, 'in tree already')
-            else:
-                self.add(n)
-            n -= 1
       
     @staticmethod
     def collatz(n):
