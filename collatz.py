@@ -24,6 +24,9 @@ class CollatzTree():
         save_list -- save the current tree and path structure to file (pickle)
         load_list -- load a tree and path structure from file (pickle)
 
+    Static methods:
+        collatz_sequence -- generate the Collatz sequence from n to 1; return list
+
     Instance variables:
         collatz_tree -- dict; each pair represents {parent: child}
         paths -- dict; each pair represents {number: path}, where path is a list
@@ -40,8 +43,6 @@ class CollatzTree():
         self.collatz_tree = {1: 4}  # 1 loops back to 4 (3*1 + 1)
         self.paths = {1: [1]}
         self.verbose = True
-
-        self.steps_to_one = {1: 0}  # 1 is already at 1
     
     def __len__(self):
         return len(self.collatz_tree)
@@ -232,110 +233,22 @@ class CollatzTree():
 
         # -1 from len of path because path includes n
         return len(self.paths[n]) - 1
-  
-    
-      
+       
     @staticmethod
-    def collatz(n):
+    def collatz_sequence(n):
+        """Generate the Collatz sequence from n to 1; return a list.
+
+        Arguments:
+        n -- the number to start from.
+        """
+        seq = []
         while n > 1:
-            print(n, end=' ')
+            seq.append(n)
             if n%2 == 0:
                 n = n // 2
             else:
                 n = 3*n + 1
       
-        print(n)
-  
-if __name__ == '__main__':
-    def print_menu():
-        print('Collatz list')
-        print('  a - add a number')
-        print('  p - print a number chain')
-        print('  f - fill list up to a number')
-        print('  l - prints the number of items in the list')
-        print('  e - steps from number to 1')
-        print('  v - toggle verbose mode (default = True)')
-        print('  cp - calculates all paths to 1 of numbers in the list')
-        print('  lp - prints the longest current path to 1')
-        print()
-        print('  c - print the Collatz chain of a number independently')
-        print()
-        print('  t - test')
-        print('  s - save the list to file')
-        print('  o - load a list from file')
-        print('  q - quit')
-        print('>>', end='')
+        seq.append(n)
+        return seq
     
-    c_list = CollatzTree()
-    ch = ''
-  
-    while ch != 'q':
-        print_menu()
-        ch = input()
-    
-        try:
-            if ch == 'a':
-                c_list.add(int(input('Number to add: ')))
-          
-            elif ch == 'p':
-                n = int(input('Number to print: '))
-                path = c_list.get_path(n)
-                print(' -> '.join([str(n) for n in path]))
-            
-            elif ch == 'f':
-                c_list.fill(int(input('Number to fill to: ')))
-            
-            elif ch == 'e':
-                n = int(input('Number to find steps to 1: '))
-                steps = c_list.get_steps_to_one(n)
-                print('Steps from {} to 1: {}'.format(n, steps))
-                path = c_list.get_path(n)
-                print(' -> '.join([str(n) for n in path]))
-            
-            
-            elif ch == 'l':
-                print('Length of Collatz list:', len(c_list))
-            
-            elif ch == 'v':
-                c_list.verbose = not c_list.verbose
-                print('Verbose mode is now', c_list.verbose)
-            
-            elif ch == 'lp':
-                path = c_list.get_longest_path()
-                print('Longest path: {} -> 1 in {} steps'.format(path[0], len(path)-1))
-                print(' -> '.join([str(n) for n in path]))
-            
-            elif ch == 'cp':
-                print('Filling all paths to 1...')
-                c_list.fill_all_paths()
-                print('...Finished.')
-                
-                #path = c_list.get_longest_path()
-                #print('Longest path: {} -> 1 in {} steps'.format(path[0], len(path)-1))
-                #print(' -> '.join([str(n) for n in path]))
-            
-            elif ch == 'c':
-                CollatzTree.collatz(int(input('Number to get Collatz chain: ')))
-                print()
-            
-            elif ch == 't':
-                item1 = CollatzTree.Item(4)
-                item2 = CollatzTree.Item(4)
-                print(item1 == item2)
-                print(item1 == 5)
-                print()
-            
-            elif ch == 's':
-                c_list.save_list()
-            
-            elif ch == 'o':
-                c_list.load_list()
-            
-        except ValueError:
-            print('Invalid input. Must be an integer.')
-           
-        print()
-  
-  
-  
-  
