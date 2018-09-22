@@ -13,20 +13,23 @@ The Collatz conjecture states that all sequences will eventually lead to 1.
 ### Public methods:
 * add -- add n and its sequence to 1 to the tree
 * fill -- add all numbers up to n and their paths to 1 to the tree
-* fill_path -- store the path from n to 1
-* fill_all_paths -- stores all paths from numbers in the tree to 1
-* get_path -- returns the list of numbers in the path from n to 1
-* get_longest_path -- returns longest path to 1 for numbers in the tree
-* get_steps_to_one -- returns the length of the path from n to 1
+* fill_sequences -- calculates (if needed) and stores all sequences of numbers in the tree to 1
+* get_sequence -- returns the list of numbers in the sequence from n to 1
+* longest_sequence -- returns longest sequence to 1 for numbers in the tree
+* stopping_time -- returns the stopping time of n (length of the sequence from n to 1)
 * save_list -- save the current tree and path structure to file (pickle)
 * load_list -- load a tree and path structure from file (pickle)
 
-### Static methods:
-* collatz_sequence -- generate the Collatz sequence from n to 1; return list
+### Non-public mehtods:
+* _calc_sequence -- calculate and store the sequence from n to 1
+* _info -- print debugging information to the console (if verbose == True)
 
 ### Instance variables:
-* collatz_tree -- dict; each pair represents {parent: child}
-* paths -- dict; each pair represents {number: path}, where path is a list
+* collatz_tree -- dict; each pair represents {parent: child} such that collatz(parent) = child
+* seqs -- dict; each pair represents {number: sequence}, where sequence is a list
 * verbose -- turns on debugging information printed to console
+
+### Static function:
+* collatz_sequence -- generate the Collatz sequence from n to 1; return list
 
 See https://en.wikipedia.org/wiki/Collatz_conjecture for more details.
